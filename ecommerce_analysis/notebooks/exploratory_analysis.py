@@ -40,8 +40,15 @@ from pyspark.sql.window import Window
 from src.utils import create_spark_session, load_data
 
 # Configuração de estilo para os gráficos
-plt.style.use('seaborn')
-sns.set_palette("viridis")
+try:
+    plt.style.use('seaborn')
+    sns.set_palette("viridis")
+    use_seaborn = True
+except:
+    # Usar estilo padrão do matplotlib se seaborn não estiver disponível
+    plt.style.use('default')
+    plt.rcParams['figure.figsize'] = (12, 6)
+    use_seaborn = False
 
 # %% [markdown]
 # 1. Configuração Inicial
@@ -84,13 +91,17 @@ vendas_por_categoria.show(truncate=False)
 vendas_pd = vendas_por_categoria.toPandas()
 
 plt.figure(figsize=(12, 6))
-ax = sns.barplot(
-    x="categoria", 
-    y="faturamento_total", 
-    data=vendas_pd,
-    estimator=sum,
-    ci=None
-)
+if use_seaborn:
+    ax = sns.barplot(
+        x="categoria", 
+        y="faturamento_total", 
+        data=vendas_pd,
+        estimator=sum,
+        ci=None
+    )
+else:
+    ax = plt.bar(vendas_pd['categoria'], vendas_pd['faturamento_total'])
+    plt.xticks(rotation=45, ha='right')
 
 # Adicionar valores nas barras
 for p in ax.patches:
@@ -130,12 +141,17 @@ vendas_por_mes.show(truncate=False)
 vendas_por_mes_pd = vendas_por_mes.toPandas()
 
 plt.figure(figsize=(14, 6))
-ax = sns.lineplot(
-    x="mes_ano_pedido", 
-    y="faturamento_total", 
-    data=vendas_por_mes_pd,
-    marker="o"
-)
+if use_seaborn:
+    ax = sns.lineplot(
+        x="mes_ano_pedido", 
+        y="faturamento_total", 
+        data=vendas_por_mes_pd,
+        marker='o'
+    )
+else:
+    plt.plot(vendas_por_mes_pd['mes_ano_pedido'], vendas_por_mes_pd['faturamento_total'], marker='o')
+    plt.xticks(rotation=45, ha='right')
+    ax = plt.gca()
 
 # Adicionar valores nos pontos
 for i, row in vendas_por_mes_pd.iterrows():
@@ -193,23 +209,37 @@ analise_pd = analise_faixa_etaria.toPandas()
 fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(16, 6))
 
 # Gráfico de barras para gasto médio por faixa etária
-sns.barplot(
-    x="faixa_etaria", 
-    y="gasto_medio", 
-    data=analise_pd,
-    ax=ax1
-)
+if use_seaborn:
+    sns.barplot(
+        x="faixa_etaria", 
+        y="gasto_medio", 
+        data=analise_pd,
+        ax=ax1
+    )
+else:
+    ax1.bar(analise_pd['faixa_etaria'], analise_pd['gasto_medio'])
+    ax1.set_title("Gasto Médio por Faixa Etária")
+    ax1.set_xlabel("Faixa Etária")
+    ax1.set_ylabel("Gasto Médio (R$)")
+
 ax1.set_title("Gasto Médio por Faixa Etária")
 ax1.set_xlabel("Faixa Etária")
 ax1.set_ylabel("Gasto Médio (R$)")
 
 # Gráfico de barras para pedidos médios por faixa etária
-sns.barplot(
-    x="faixa_etaria", 
-    y="pedidos_medio", 
-    data=analise_pd,
-    ax=ax2
-)
+if use_seaborn:
+    sns.barplot(
+        x="faixa_etaria", 
+        y="pedidos_medio", 
+        data=analise_pd,
+        ax=ax2
+    )
+else:
+    ax2.bar(analise_pd['faixa_etaria'], analise_pd['pedidos_medio'])
+    ax2.set_title("Média de Pedidos por Faixa Etária")
+    ax2.set_xlabel("Faixa Etária")
+    ax2.set_ylabel("Média de Pedidos")
+
 ax2.set_title("Média de Pedidos por Faixa Etária")
 ax2.set_xlabel("Faixa Etária")
 ax2.set_ylabel("Média de Pedidos")
@@ -239,13 +269,19 @@ produtos_mais_vendidos.show(truncate=False)
 produtos_pd = produtos_mais_vendidos.toPandas()
 
 plt.figure(figsize=(14, 6))
-ax = sns.barplot(
-    x="nome_produto", 
-    y="quantidade_vendida", 
-    data=produtos_pd,
-    hue="categoria",
-    dodge=False
-)
+if use_seaborn:
+    ax = sns.barplot(
+        x="nome_produto", 
+        y="quantidade_vendida", 
+        data=produtos_pd,
+        hue="categoria",
+        dodge=False
+    )
+else:
+    ax = plt.barh(produtos_pd['nome_produto'], produtos_pd['quantidade_vendida'])
+    plt.xlabel("Quantidade Vendida")
+    plt.ylabel("Produto")
+    plt.legend(title="Categoria", bbox_to_anchor=(1.05, 1), loc='upper left')
 
 plt.title("Top 10 Produtos Mais Vendidos por Quantidade")
 plt.xlabel("Produto")
@@ -330,11 +366,15 @@ rfm_completo.groupBy("segmento_rfm").count().orderBy("count", ascending=False).s
 segmentos_pd = rfm_completo.groupBy("segmento_rfm").count().orderBy("count", ascending=False).toPandas()
 
 plt.figure(figsize=(12, 6))
-ax = sns.barplot(
-    x="segmento_rfm",
-    y="count",
-    data=segmentos_pd
-)
+if use_seaborn:
+    ax = sns.barplot(
+        x="segmento_rfm", 
+        y="count", 
+        data=segmentos_pd
+    )
+else:
+    ax = plt.bar(segmentos_pd['segmento_rfm'], segmentos_pd['count'])
+    plt.xticks(rotation=45, ha='right')
 
 plt.title("Distribuição de Clientes por Segmento RFM")
 plt.xlabel("Segmento RFM")
@@ -423,16 +463,16 @@ vendas_por_dia_semana.show()
 vendas_dia_semana_pd = vendas_por_dia_semana.toPandas()
 
 plt.figure(figsize=(12, 6))
-ax = sns.barplot(
-    x="dia_semana_nome",
-    y="faturamento_total",
-    data=vendas_dia_semana_pd,
-    order=["Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado", "Domingo"]
-)
-
-plt.title("Faturamento por Dia da Semana")
-plt.xlabel("Dia da Semana")
-plt.ylabel("Faturamento Total (R$)")
+if use_seaborn:
+    ax = sns.barplot(
+        x="dia_semana_nome",
+        y="faturamento_total",
+        data=vendas_dia_semana_pd,
+        order=["Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado", "Domingo"]
+    )
+else:
+    ax = plt.bar(vendas_dia_semana_pd['dia_semana_nome'], vendas_dia_semana_pd['faturamento_total'])
+    plt.xticks(rotation=45, ha='right')
 
 # Adicionar valores nas barras
 for p in ax.patches:
@@ -444,6 +484,10 @@ for p in ax.patches:
         xytext=(0, 10),
         textcoords='offset points'
     )
+
+plt.title("Faturamento por Dia da Semana")
+plt.xlabel("Dia da Semana")
+plt.ylabel("Faturamento Total (R$)")
 
 plt.tight_layout()
 plt.savefig("../reports/faturamento_por_dia_semana.png", dpi=300, bbox_inches='tight')
@@ -489,16 +533,29 @@ clv_ordenado.select(
 # Visualização da distribuição do valor total gasto pelos clientes
 clv_pd = clv_ordenado.limit(50).toPandas()  # Limitar a 50 clientes para visualização
 
-plt.figure(figsize=(14, 6))
-sns.scatterplot(
-    x="total_pedidos",
-    y="valor_total_gasto",
-    data=clv_pd,
-    hue="estado",
-    size="valor_medio_por_mes",
-    sizes=(50, 500),
-    alpha=0.7
-)
+plt.figure(figsize=(12, 6))
+if use_seaborn:
+    sns.scatterplot(
+        x="total_pedidos",
+        y="valor_total_gasto",
+        data=clv_pd,
+        hue="estado",
+        size="valor_medio_por_mes",
+        sizes=(50, 200),
+        alpha=0.7
+    )
+else:
+    # Versão simplificada sem seaborn
+    scatter = plt.scatter(
+        clv_pd['total_pedidos'],
+        clv_pd['valor_total_gasto'],
+        c=pd.factorize(clv_pd['estado'])[0],
+        s=clv_pd['valor_medio_por_mes']/10,
+        alpha=0.7
+    )
+    plt.colorbar(scatter, label='Estado')
+    plt.xlabel('Total de Pedidos')
+    plt.ylabel('Valor Total Gasto')
 
 plt.title("Relação entre Número de Pedidos e Valor Total Gasto por Cliente")
 plt.xlabel("Número Total de Pedidos")
