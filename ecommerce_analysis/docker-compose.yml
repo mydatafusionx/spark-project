@@ -1,0 +1,128 @@
+version: '3.8'
+
+services:
+  # Serviço principal para análise
+  ecommerce-analysis:
+    build: .
+    container_name: ecommerce-analysis
+    volumes:
+      - .:/app
+      - ./data:/app/data
+      - ./reports:/app/reports
+      - ./notebooks:/app/notebooks
+      - ./logs:/app/logs
+    ports:
+      - "8888:8888"  # Jupyter Notebook/Lab
+      - "4040:4040"  # Spark UI
+    environment:
+      - PYTHONPATH=/app
+      - SPARK_MASTER=local[*]
+      - SPARK_DRIVER_MEMORY=4g
+      - SPARK_EXECUTOR_MEMORY=4g
+    working_dir: /app
+    command: jupyter lab --ip=0.0.0.0 --port=8888 --no-browser --allow-root --NotebookApp.token=''
+    networks:
+      - ecommerce-network
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 8G
+
+  # Serviço para Jupyter com Spark
+  jupyter-spark:
+    image: jupyter/pyspark-notebook:spark-3.4.0
+    container_name: jupyter-spark
+    ports:
+      - "8889:8888"
+    volumes:
+      - .:/home/jovyan/work
+    environment:
+      - JUPYTER_ENABLE_LAB=yes
+      - GRANT_SUDO=yes
+    working_dir: /home/jovyan/work
+    command: start-notebook.sh --NotebookApp.token=''
+    networks:
+      - ecommerce-network
+
+  # Serviço para visualização de dados com Metabase
+  metabase:
+    image: metabase/metabase:latest
+    container_name: metabase
+    ports:
+      - "3000:3000"
+    environment:
+      - MB_DB_TYPE=postgres
+      - MB_DB_DBNAME=metabase
+      - MB_DB_PORT=5432
+      - MB_DB_USER=metabase
+      - MB_DB_PASS=metabase
+      - MB_DB_HOST=postgres
+    depends_on:
+      - postgres
+    networks:
+      - ecommerce-network
+
+  # Banco de dados PostgreSQL para o Metabase
+  postgres:
+    image: postgres:13
+    container_name: postgres
+    environment:
+      - POSTGRES_USER=metabase
+      - POSTGRES_PASSWORD=metabase
+      - POSTGRES_DB=metabase
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - ecommerce-network
+
+  # Serviço para monitoramento com Prometheus e Grafana
+  monitoring:
+    image: docker.io/bitnami/spark:3.4.0
+    container_name: spark-master
+    ports:
+      - "8080:8080"  # Spark Master UI
+      - "8081:8081"  # Spark Worker UI
+      - "9090:9090"  # Prometheus
+      - "3001:3000"  # Grafana
+    environment:
+      - SPARK_MODE=master
+      - SPARK_RPC_AUTHENTICATION_ENABLED=no
+      - SPARK_RPC_ENCRYPTION_ENABLED=no
+      - SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no
+      - SPARK_SSL_ENABLED=no
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+      - grafana_data:/var/lib/grafana
+    networks:
+      - ecommerce-network
+
+  # Serviço para processamento distribuído com Spark
+  spark-worker:
+    image: docker.io/bitnami/spark:3.4.0
+    container_name: spark-worker
+    depends_on:
+      - monitoring
+    environment:
+      - SPARK_MODE=worker
+      - SPARK_MASTER_URL=spark://monitoring:7077
+      - SPARK_WORKER_MEMORY=4G
+      - SPARK_WORKER_CORES=2
+      - SPARK_RPC_AUTHENTICATION_ENABLED=no
+      - SPARK_RPC_ENCRYPTION_ENABLED=no
+      - SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no
+      - SPARK_SSL_ENABLED=no
+    networks:
+      - ecommerce-network
+
+# Volumes para persistência de dados
+volumes:
+  postgres_data:
+  prometheus_data:
+  grafana_data:
+
+# Rede para comunicação entre os serviços
+networks:
+  ecommerce-network:
+    driver: bridge

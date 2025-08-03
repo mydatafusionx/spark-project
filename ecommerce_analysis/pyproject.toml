@@ -1,0 +1,87 @@
+[build-system]
+requires = ["setuptools>=42", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ecommerce-analysis"
+version = "0.1.0"
+description = "Análise de dados de e-commerce com PySpark"
+readme = "README.md"
+authors = [
+    { name = "Seu Nome", email = "seu.email@example.com" },
+]
+license = { text = "MIT" }
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Natural Language :: Portuguese (Brazilian)",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3 :: Only",
+    "Topic :: Scientific/Engineering :: Information Analysis",
+    "Topic :: Scientific/Engineering :: Visualization",
+]
+requires-python = ">=3.8"
+dependencies = [
+    "pyspark>=3.4.0",
+    "pandas>=1.3.0",
+    "matplotlib>=3.4.0",
+    "seaborn>=0.11.0",
+    "jupyter>=1.0.0",
+    "findspark>=1.4.2",
+    "numpy>=1.20.0",
+    "scikit-learn>=1.0.0",
+    "pyarrow>=6.0.0",
+    "plotly>=5.0.0",
+    "notebook>=6.0.0",
+    "pyyaml>=6.0",
+    "tqdm>=4.65.0",
+    "python-dotenv>=0.19.0"
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=6.0.0",
+    "pytest-cov>=2.0.0",
+    "black>=21.0",
+    "isort>=5.0",
+    "flake8>=3.9.0",
+    "mypy>=0.9.0",
+    "jupyterlab>=3.0.0",
+    "jupytext>=1.13.0",
+    "pre-commit>=2.0.0"
+]
+
+docs = [
+    "sphinx>=4.0.0",
+    "sphinx-rtd-theme>=0.5.0",
+    "nbsphinx>=0.8.0",
+    "sphinxcontrib-napoleon>=0.7"
+]
+
+[project.scripts]
+ecommerce-etl = "src.etl:main"
+ecommerce-analysis = "src.analysis:main"
+ecommerce-generate-data = "src.utils:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["*"]
+
+[tool.black]
+line-length = 88
+target-version = ["py38"]
+include = '\.pyi?$'
+
+[tool.isort]
+profile = "black"
+multi_line_output = 3
+include_trailing_comma = true
+force_grid_wrap = 0
+use_parentheses = true
+ensure_newline_before_comments = true
+line_length = 88

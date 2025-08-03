@@ -1,0 +1,93 @@
+# Diretórios de dados
+data/
+!data/raw/.gitkeep
+!data/processed/.gitkeep
+
+# Diretório de relatórios
+reports/
+!reports/.gitkeep
+
+# Diretório de modelos
+models/
+!models/.gitkeep
+
+# Logs
+logs/
+*.log
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+*/.ipynb_checkpoints/*
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Virtual Environment
+venv/
+env/
+ENV/
+
+# Spark
+.spark-
+spark-warehouse/
+metastore_db/
+derby.log
+
+# Arquivos temporários
+*.tmp
+*.bak
+*.swp
+*~.nib
+local.properties
+
+# Arquivos de ambiente
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Arquivos de configuração local
+config/local_settings.py
+
+# Arquivos de checkpoint
+checkpoint/
+*.checkpoint
+
+# Arquivos de cache
+.cache/
+
+# Arquivos de sistema operacional
+.DS_Store
+Thumbs.db
